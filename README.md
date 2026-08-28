@@ -8,8 +8,11 @@ lists every indicator with a switch. Each switch shows that indicator's live sta
 flipping it performs the indicator's own action: the night light switch toggles night
 light, the recording switch starts and stops the recorder.
 
-The icon lights up while anything is active, so the bar still tells you something is
-running without spending any width on it.
+When indicators are active, a badge above the icon counts them, so the bar reports how much
+is running without spending any extra width on it. The badge sits over the glyph rather
+than beside it — widening the slot would shove the whole right section sideways every time
+an indicator came on — and takes the theme's bar-active colour, so it works on light
+themes too. The glyph itself only highlights while the panel is open.
 
 The panel is split by what pressing an indicator actually does.
 

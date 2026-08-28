@@ -205,8 +205,41 @@ Ui.BarWidget {
     tooltipText: root.activeCount > 0
       ? ("Indicators — " + root.activeCount + " active")
       : "Indicators"
-    active: root.opened || root.activeCount > 0
+    // Only the open panel colours the glyph now: how many indicators are
+    // running is the badge's job, and two signals for one fact competing on
+    // the same icon reads as noise.
+    active: root.opened
     onPressed: function(pressedButton) { root.toggle() }
+  }
+
+  // Count of what is currently running, above the icon. It sits over the
+  // glyph's top rather than beside it: the bar gives a widget one icon slot,
+  // and widening the slot for a badge would shove the whole right section
+  // sideways every time an indicator came on.
+  Rectangle {
+    id: badge
+
+    visible: root.activeCount > 0
+    anchors.horizontalCenter: button.horizontalCenter
+    anchors.top: button.top
+    width: Math.max(height, badgeLabel.implicitWidth + Style.space(6))
+    height: Style.space(13)
+    radius: height / 2
+    // Themed, not a fixed colour: the bar's own active token is what every
+    // other widget uses to say "this one is live", and it is defined for
+    // light themes too.
+    color: Color.bar.active
+
+    Text {
+      id: badgeLabel
+      anchors.centerIn: parent
+      text: String(root.activeCount)
+      textFormat: Text.PlainText
+      color: Color.bar.background
+      font.family: Style.font.family
+      font.pixelSize: Style.font.caption - 2
+      font.bold: true
+    }
   }
 
   // The indicators themselves, instantiated but never shown: the panel needs
