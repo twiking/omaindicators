@@ -159,9 +159,12 @@ Ui.BarWidget {
     id: button
     anchors.fill: parent
     bar: root.bar
-    // nf-fa-sliders (U+F1DE) — a themed glyph, so it takes the bar foreground
-    // like every other icon instead of a fixed-colour emoji.
-    text: ""
+    // nf-fa-sliders, a themed glyph so it takes the bar foreground like every
+    // other icon instead of a fixed-colour emoji. Written as an escape rather
+    // than the literal character: the codepoint is in the Private Use Area,
+    // where a tool that mangles encodings drops it silently and the button
+    // renders empty — which reads as "the widget isn't there" in the bar.
+    text: "\uF1DE"
     tooltipText: root.activeCount > 0
       ? ("Indicators — " + root.activeCount + " active")
       : "Indicators"
