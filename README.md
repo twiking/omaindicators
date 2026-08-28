@@ -32,7 +32,7 @@ Or from a checkout:
 
 ```bash
 git clone https://github.com/twiking/omaindicators ~/.config/omarchy/plugins/io.github.twiking.omaindicators
-omarchy plugin enable io.github.twiking.omaindicators center
+omarchy plugin enable io.github.twiking.omaindicators right
 ```
 
 ## Settings
