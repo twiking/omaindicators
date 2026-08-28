@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.twiking.omaindicators",
+  "name": "OmaIndicators",
+  "version": "0.1.0",
+  "author": "twiking",
+  "license": "MIT",
+  "homepage": "https://github.com/twiking/omaindicators",
+  "description": "Bar widget with a toggle window for picking which Omarchy indicators sit in the bar",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "OmaIndicators",
+    "description": "Opens a window to toggle indicators on and off; enabled ones render in the bar next to the widget",
+    "category": "Status",
+    "defaultSection": "right",
+    "allowMultiple": false,
+    "schema": [
+      {
+        "key": "showLabels",
+        "type": "boolean",
+        "label": "Descriptions in the toggle window",
+        "description": "Show the one-line description under each indicator name.",
+        "defaultValue": true
+      }
+    ]
+  }
+}
