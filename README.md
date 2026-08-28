@@ -11,16 +11,25 @@ light, the recording switch starts and stops the recorder.
 The icon lights up while anything is active, so the bar still tells you something is
 running without spending any width on it.
 
-Indicators in the panel:
+The panel is split by what pressing an indicator actually does.
+
+**Switches** — these flip their own state, so a switch is an honest control:
 
 | Indicator | Switch does |
 | --- | --- |
-| Dictation | Opens voice typing config; shows recording/transcribing |
-| Screen recording | Starts, and stops, the GPU screen recorder |
-| Reminder | Shows queued reminders, or starts a new one |
 | Night light | Toggles the blue-light filter |
 | Do not disturb | Silences and unsilences notifications |
 | Stay awake | Overrides idle lock and screensaver |
+| Dictation | Opens voice typing config; shows recording/transcribing |
+
+**Actions**, at the bottom — these perform something rather than holding a state, so a
+switch would promise a state the row does not own. They are buttons, labelled with the
+action they will perform and lit while the underlying thing is running:
+
+| Action | Button does |
+| --- | --- |
+| Reminder | Shows the queue, or starts a new reminder |
+| Screen recording | Starts, and stops, the GPU screen recorder |
 
 ## Install
 

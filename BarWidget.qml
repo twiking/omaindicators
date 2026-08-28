@@ -25,14 +25,33 @@ Ui.BarWidget {
   // The indicator implementations live in indicators/ and are loaded by id, so
   // this catalog is the only place a new one has to be named. Each entry maps
   // one-to-one onto indicators/<id>.qml.
+  // Split by what pressing the indicator actually does. The first group flips
+  // its own state, so a switch is an honest control for it. The second group
+  // performs an action — Reminder opens the reminder flow, Screen recording
+  // starts and stops the recorder — and a switch there would promise a state
+  // the row does not own, so those render as buttons at the bottom.
   readonly property var catalog: [
-    { "id": "Dictation",       "label": "Dictation",        "description": "Voice typing status" },
-    { "id": "ScreenRecording", "label": "Screen recording", "description": "GPU screen recorder status" },
-    { "id": "Reminder",        "label": "Reminder",         "description": "Queued reminder status" },
-    { "id": "NightLight",      "label": "Night light",      "description": "Blue-light filter" },
-    { "id": "Dnd",             "label": "Do not disturb",   "description": "Notification silencing" },
-    { "id": "StayAwake",       "label": "Stay awake",       "description": "Idle lock and screensaver override" }
+    { "id": "NightLight",      "kind": "toggle", "label": "Night light",      "description": "Blue-light filter" },
+    { "id": "Dnd",             "kind": "toggle", "label": "Do not disturb",   "description": "Notification silencing" },
+    { "id": "StayAwake",       "kind": "toggle", "label": "Stay awake",       "description": "Idle lock and screensaver override" },
+    { "id": "Dictation",       "kind": "toggle", "label": "Dictation",        "description": "Voice typing status" },
+    { "id": "Reminder",        "kind": "action", "label": "Reminder",         "description": "Queued reminder status" },
+    { "id": "ScreenRecording", "kind": "action", "label": "Screen recording", "description": "GPU screen recorder status" }
   ]
+
+  // Both keep catalog order, and the cursor runs over the catalog as a whole,
+  // so an action's row index is offset by however many toggles precede it.
+  readonly property var toggleItems: itemsOfKind("toggle")
+  readonly property var actionItems: itemsOfKind("action")
+
+  function itemsOfKind(kind) {
+    var result = []
+    for (var i = 0; i < catalog.length; i++) {
+      if (catalog[i].kind === kind) result.push(catalog[i])
+    }
+    return result
+  }
+
 
   property bool opened: false
   property int cursorIndex: -1
@@ -42,6 +61,11 @@ Ui.BarWidget {
   // to this rather than to the indicator objects: those resolve once, while
   // the loaders are still filling in, so a direct binding would never update.
   property var activeStates: ({})
+  // id -> { label, icon } for the action rows. The indicators already phrase
+  // their own tooltips as the action they will perform ("Stop recording",
+  // "Screen Recording"), and Reminder puts its queue in there, so the buttons
+  // read those rather than inventing a second set of strings.
+  property var actionInfo: ({})
 
   readonly property bool showLabels: setting("showLabels", true) === true
 
@@ -83,17 +107,30 @@ Ui.BarWidget {
 
   function recountActive() {
     var states = {}
+    var info = {}
     var count = 0
     for (var i = 0; i < catalog.length; i++) {
-      var id = catalog[i].id
-      if (isActive(id)) {
-        states[id] = true
+      var entry = catalog[i]
+      var item = indicatorItem(entry.id)
+      var active = !!item && item.active === true
+      if (active) {
+        states[entry.id] = true
         count++
+      }
+      if (entry.kind === "action") {
+        var tooltip = item ? String(active ? item.activeTooltipText : item.inactiveTooltipText) : ""
+        info[entry.id] = {
+          // Reminder leaves its tooltip empty with nothing queued, so the
+          // catalog name stands in rather than an unlabelled button.
+          "label": tooltip !== "" ? tooltip : entry.label,
+          "icon": item ? String(active ? item.activeText : item.inactiveText) : ""
+        }
       }
     }
     // Assigned whole so the change signal fires: mutating the existing object
-    // in place would leave every switch bound to a value QML thinks is stale.
+    // in place would leave every row bound to a value QML thinks is stale.
     activeStates = states
+    actionInfo = info
     activeCount = count
   }
 
@@ -220,10 +257,14 @@ Ui.BarWidget {
           function onBarChanged() { host.injectProps() }
         }
 
+        // Reminder's queue and the recorder's phrasing change without `active`
+        // moving, so the labels track the tooltips too.
         Connections {
           target: loader.item
           ignoreUnknownSignals: true
           function onActiveChanged() { root.recountActive() }
+          function onActiveTooltipTextChanged() { root.recountActive() }
+          function onInactiveTooltipTextChanged() { root.recountActive() }
         }
       }
     }
@@ -266,10 +307,9 @@ Ui.BarWidget {
         }
 
         Repeater {
-          model: root.catalog
+          model: root.toggleItems
 
           Ui.Toggle {
-            id: row
             required property var modelData
             required property int index
 
@@ -283,6 +323,47 @@ Ui.BarWidget {
               if (!isHovered) return
               root.cursorActive = true
               root.cursorIndex = index
+            }
+          }
+        }
+
+        Ui.PanelSeparator {
+          width: parent.width
+          visible: root.actionItems.length > 0
+        }
+
+        Ui.PanelSectionHeader {
+          width: parent.width
+          text: "Actions"
+          visible: root.actionItems.length > 0
+        }
+
+        // These do not flip their own state, so they are buttons: pressing one
+        // runs the indicator's action and the label says what that action is.
+        Repeater {
+          model: root.actionItems
+
+          Ui.Button {
+            required property var modelData
+            required property int index
+
+            readonly property var info: root.actionInfo[modelData.id]
+
+            width: column.width
+            leftAlign: true
+            bordered: true
+            iconText: info ? info.icon : ""
+            text: info ? info.label : modelData.label
+            // Lit while the underlying thing is running, so a recording in
+            // progress is as obvious here as a switch that is on.
+            active: root.activeStates[modelData.id] === true
+            // The cursor runs over the catalog, toggles first.
+            hasCursor: root.cursorActive && root.cursorIndex === root.toggleItems.length + index
+            onClicked: root.press(modelData.id)
+            onHovered: function(isHovered) {
+              if (!isHovered) return
+              root.cursorActive = true
+              root.cursorIndex = root.toggleItems.length + index
             }
           }
         }

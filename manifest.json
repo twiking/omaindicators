@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.twiking.omaindicators",
   "name": "OmaIndicators",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "author": "twiking",
   "license": "MIT",
   "homepage": "https://github.com/twiking/omaindicators",
@@ -15,7 +15,7 @@
   },
   "barWidget": {
     "displayName": "OmaIndicators",
-    "description": "Bar icon that opens a panel with a switch for every indicator; the switches show live state and perform each indicator's own action",
+    "description": "Bar icon that opens a panel: switches for the indicators that toggle, buttons for the ones that perform an action",
     "category": "Status",
     "defaultSection": "right",
     "allowMultiple": false,
