@@ -1,25 +1,26 @@
 # OmaIndicators
 
-An [Omarchy](https://omarchy.org) shell plugin: the indicators, but you pick them from the bar.
+An [Omarchy](https://omarchy.org) shell plugin: every indicator behind one bar icon.
 
-The built-in `omarchy.indicators` widget decides its set in `shell.json` and only reveals
-the inactive ones on hover. OmaIndicators puts a button in the bar instead — press it and a
-window opens listing every indicator with a switch. Whatever is switched on is rendered in
-the bar right beside the button, and stays there whether or not it is currently active.
+The built-in `omarchy.indicators` widget spreads its set along the bar and only reveals the
+idle ones on hover. OmaIndicators makes the opposite trade — **one icon**, and a panel that
+lists every indicator with a switch. Each switch shows that indicator's live state, and
+flipping it performs the indicator's own action: the night light switch toggles night
+light, the recording switch starts and stops the recorder.
 
-Indicators available:
+The icon lights up while anything is active, so the bar still tells you something is
+running without spending any width on it.
 
-| Indicator | What it shows |
+Indicators in the panel:
+
+| Indicator | Switch does |
 | --- | --- |
-| Dictation | Voice typing status |
-| Screen recording | GPU screen recorder status |
-| Reminder | Queued reminder status |
-| Night light | Blue-light filter |
-| Do not disturb | Notification silencing |
-| Stay awake | Idle lock and screensaver override |
-
-Each one keeps its stock behaviour, including its click action — pressing the night light
-indicator still toggles night light.
+| Dictation | Opens voice typing config; shows recording/transcribing |
+| Screen recording | Starts, and stops, the GPU screen recorder |
+| Reminder | Shows queued reminders, or starts a new one |
+| Night light | Toggles the blue-light filter |
+| Do not disturb | Silences and unsilences notifications |
+| Stay awake | Overrides idle lock and screensaver |
 
 ## Install
 
@@ -31,32 +32,36 @@ Or from a checkout:
 
 ```bash
 git clone https://github.com/twiking/omaindicators ~/.config/omarchy/plugins/io.github.twiking.omaindicators
-omarchy plugin enable io.github.twiking.omaindicators
+omarchy plugin enable io.github.twiking.omaindicators center
 ```
 
 ## Settings
 
 One widget setting, in the bar widget editor:
 
-- **Descriptions in the toggle window** — show the one-line description under each
-  indicator name. On by default.
+- **Descriptions in the panel** — show the one-line description under each indicator name.
+  On by default.
 
-The selection itself is not a widget setting; it is the widget's own state, persisted to
-`$XDG_STATE_HOME/omaindicators/state.json` (`~/.local/state/omaindicators/state.json`), so
-it survives a shell restart without editing any config by hand.
+There is nothing else to configure: the panel always lists every indicator, and each one's
+state lives where it always did, with the service that owns it.
+
+## Keyboard
+
+The panel takes focus when it opens. Up/down move the cursor, Enter or Space flips the
+switch under it, Tab hands off to the next bar panel, Esc closes.
 
 ## IPC
 
 ```bash
-omarchy-shell io.github.twiking.omaindicators toggle    # open/close the window
+omarchy-shell io.github.twiking.omaindicators toggle    # open/close the panel
 omarchy-shell io.github.twiking.omaindicators open
 omarchy-shell io.github.twiking.omaindicators close
 omarchy-shell io.github.twiking.omaindicators refresh   # re-poll the indicators
 
-# Flip one indicator without opening the window — bind it, or restore a
-# selection from a setup script. Unknown ids are ignored.
-omarchy-shell io.github.twiking.omaindicators setIndicator NightLight true
-omarchy-shell io.github.twiking.omaindicators setIndicator Dnd false
+# Flip one indicator without opening the panel — the same action its switch
+# performs, bindable to a key. Unknown ids are ignored with a warning.
+omarchy-shell io.github.twiking.omaindicators press NightLight
+omarchy-shell io.github.twiking.omaindicators press Dnd
 ```
 
 `toggle` is the one worth binding to a key.
@@ -70,10 +75,13 @@ qmllint -I /usr/share/omarchy/shell -I /usr/lib/qt6/qml BarWidget.qml indicators
 
 Both import paths are needed — the shell for `qs.Ui` / `qs.Commons`, `/usr/lib/qt6/qml`
 for `Quickshell`. Note that qmllint 1.0 exits 255 without printing anything on any file
-carrying a typed `IpcHandler` function, including Omarchy's own `shell.qml`; check the
+carrying a typed `IpcHandler` function, including Omarchy's own `shell.qml`; read the
 printed warnings, not the exit code.
 
-See the [plugin development guide](https://omarchyplugins.com/develop.html).
+After editing, restart the shell with `omarchy-restart-shell`. A hot reload leaves the
+plugin's IPC target owned by the previous instance, so `omarchy-shell ... press` will keep
+running the old code until a restart. (`omarchy-refresh-shell` is a different command —
+it **resets `shell.json` to Omarchy defaults**. Don't reach for it by mistake.)
 
 ## Credits
 
